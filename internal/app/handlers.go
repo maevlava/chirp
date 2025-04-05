@@ -46,36 +46,6 @@ func (app *Application) HandlerMetrics(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
-func (app *Application) HandlerValidate(w http.ResponseWriter, r *http.Request) {
-	type ValidateParameters struct {
-		Body string `json:"body"`
-	}
-	type CleanedValidateChirpResponse struct {
-		CleanedBody string `json:"cleaned_body"`
-	}
-
-	decoder := json.NewDecoder(r.Body)
-	params := ValidateParameters{}
-
-	err := decoder.Decode(&params)
-	// if something went wrong
-	if err != nil {
-		httputil.RespondWithError(w, http.StatusBadRequest, "Something went wrong")
-		return
-	}
-
-	// if chirp is too long
-	const maxChirpLength = 100
-	if len(params.Body) > maxChirpLength {
-		httputil.RespondWithError(w, http.StatusBadRequest, "Chirp is too long")
-	}
-
-	cleaned := cleanProfanity(params.Body)
-	respPayload := CleanedValidateChirpResponse{
-		CleanedBody: cleaned,
-	}
-	httputil.RespondWithJSON(w, http.StatusOK, respPayload)
-}
 
 func (app *Application) HandlerUsers(w http.ResponseWriter, r *http.Request) {
 	type EmailParam struct {
@@ -128,6 +98,54 @@ func (app *Application) HandlerResetUsers(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(http.StatusOK)
 
 	app.Config.FileServerHits.Store(0)
+}
+
+func (app *Application) HandlerChirps(w http.ResponseWriter, r *http.Request) {
+	const maxChirpLength = 100
+	type ChripParams struct {
+		Body   string `json:"body"`
+		UserID string `json:"user_id"`
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	params := ChripParams{}
+
+	err := decoder.Decode(&params)
+	if err != nil {
+		httputil.RespondWithError(w, http.StatusBadRequest, "Something went wrong")
+		return
+	} else if len(params.Body) > maxChirpLength {
+		httputil.RespondWithError(w, http.StatusBadRequest, "Chirp is too long")
+		return
+	}
+	if params.Body == "" {
+		httputil.RespondWithError(w, http.StatusBadRequest, "Chirp body cannot be empty")
+		return
+	}
+	if params.UserID == "" {
+		httputil.RespondWithError(w, http.StatusBadRequest, "User ID cannot be empty")
+		return
+	}
+	parsedUserID, err := uuid.Parse(params.UserID)
+	if err != nil {
+		httputil.RespondWithError(w, http.StatusBadRequest, "Invalid User ID format")
+		return
+	}
+
+	// if valid
+	createChirpParams := database.CreateChirpParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+		Body:      params.Body,
+		UserID:    parsedUserID,
+	}
+	createdChirp, err := app.Config.DB.CreateChirp(r.Context(), createChirpParams)
+	if err != nil {
+		httputil.RespondWithError(w, http.StatusInternalServerError, err.Error())
+	}
+
+	httputil.RespondWithJSON(w, http.StatusCreated, createdChirp)
 }
 
 // util

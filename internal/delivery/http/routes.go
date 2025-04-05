@@ -47,7 +47,7 @@ func serveApiMux(app *app.Application) *http.ServeMux {
 	apiMux := http.NewServeMux()
 
 	apiMux.HandleFunc("GET /healthz", metricsMiddleware(http.HandlerFunc(app.HandlerReadiness)).ServeHTTP)
-	apiMux.HandleFunc("POST /validate_chirp", metricsMiddleware(http.HandlerFunc(app.HandlerValidate)).ServeHTTP)
+	apiMux.HandleFunc("POST /chirps", metricsMiddleware(http.HandlerFunc(app.HandlerChirps)).ServeHTTP)
 	apiMux.HandleFunc("POST /users", metricsMiddleware(http.HandlerFunc(app.HandlerUsers)).ServeHTTP)
 	return apiMux
 }

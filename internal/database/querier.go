@@ -9,6 +9,7 @@ import (
 )
 
 type Querier interface {
+	CreateChirp(ctx context.Context, arg CreateChirpParams) (Chirp, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteAllUsers(ctx context.Context) error
 }
