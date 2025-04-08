@@ -21,6 +21,7 @@ type UserResponse struct {
 	Email        string    `json:"email"`
 	Token        string    `json:"token"`
 	RefreshToken string    `json:"refresh_token"`
+	IsChirpyRed  bool      `json:"is_chirpy_red"`
 }
 type RefreshTokenResponse struct {
 	Token string `json:"token"`
@@ -333,6 +334,7 @@ func (app *Application) HandlerLogin(w http.ResponseWriter, r *http.Request) {
 		Email:        user.Email,
 		Token:        accessTokenString,
 		RefreshToken: refreshTokenString,
+		IsChirpyRed:  user.IsChirpyRed,
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -376,6 +378,47 @@ func (app *Application) HandlerRevokeToken(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (app *Application) HandlerPolkaWebhooks(w http.ResponseWriter, r *http.Request) {
+	// auth api key
+	apiKey, err := auth.GetAPIKey(r.Header)
+	if err != nil {
+		httputil.RespondWithError(w, http.StatusUnauthorized, "Missing or invalid apikey")
+		return
+	}
+	if apiKey != app.Config.PolkaApiKey {
+		httputil.RespondWithError(w, http.StatusUnauthorized, "Invalid apikey")
+		return
+	}
+
+	type PolkaRequest struct {
+		Event string `json:"event"`
+		Data  struct {
+			UserID string `json:"user_id"`
+		} `json:"data"`
+	}
+	params := PolkaRequest{}
+	decoder := json.NewDecoder(r.Body)
+	err = decoder.Decode(&params)
+	if err != nil {
+		httputil.RespondWithError(w, http.StatusBadRequest, "Something went wrong")
+	}
+	if params.Event != "user.upgraded" {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	userID, err := uuid.Parse(params.Data.UserID)
+	if err != nil {
+		httputil.RespondWithError(w, http.StatusBadRequest, "Something went wrong")
+		return
+	}
+	_, err = app.Config.DB.UpgradeUserToChirpyRed(r.Context(), userID)
+	if err != nil {
+		httputil.RespondWithError(w, http.StatusNotFound, "Could not upgrade user")
+		return
+	}
 	w.WriteHeader(http.StatusNoContent)
 }
 

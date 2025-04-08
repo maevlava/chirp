@@ -56,6 +56,7 @@ func serveApiMux(app *app.Application) *http.ServeMux {
 	apiMux.HandleFunc("POST /users", metricsMiddleware(http.HandlerFunc(app.HandlerUsers)).ServeHTTP)
 	apiMux.HandleFunc("POST /refresh", metricsMiddleware(http.HandlerFunc(app.HandlerRefreshToken)).ServeHTTP)
 	apiMux.HandleFunc("POST /revoke", metricsMiddleware(http.HandlerFunc(app.HandlerRevokeToken)).ServeHTTP)
+	apiMux.HandleFunc("POST /polka/webhooks", metricsMiddleware(http.HandlerFunc(app.HandlerPolkaWebhooks)).ServeHTTP)
 	return apiMux
 }
 func serveAdminMux(app *app.Application) *http.ServeMux {

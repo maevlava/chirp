@@ -22,6 +22,7 @@ type Querier interface {
 	GetUserForRefreshToken(ctx context.Context, token string) (User, error)
 	RevokeRefreshToken(ctx context.Context, token string) error
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
+	UpgradeUserToChirpyRed(ctx context.Context, id uuid.UUID) (User, error)
 }
 
 var _ Querier = (*Queries)(nil)

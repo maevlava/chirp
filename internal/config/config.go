@@ -12,15 +12,18 @@ type ApiConfig struct {
 	WebStaticDir   string
 	DB             *database.Queries
 	JWTSecret      string
+	PolkaApiKey    string
 }
 
 func Load() *ApiConfig {
 	secret := os.Getenv("JWT_SECRET")
-	if secret == "" {
-		log.Fatal("jwt secret not defined")
+	PolkaAPIKey := os.Getenv("POLKA_KEY")
+	if secret == "" || PolkaAPIKey == "" {
+		log.Fatal("env missing value")
 	}
 	return &ApiConfig{
 		WebStaticDir: "./web/static",
 		JWTSecret:    secret,
+		PolkaApiKey:  PolkaAPIKey,
 	}
 }
