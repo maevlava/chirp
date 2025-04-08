@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
+	"strings"
 	"time"
 )
 
@@ -214,10 +216,31 @@ func (app *Application) HandlerChirps(w http.ResponseWriter, r *http.Request) {
 	httputil.RespondWithJSON(w, http.StatusCreated, createdChirp)
 }
 func (app *Application) HandlerGetChirps(w http.ResponseWriter, r *http.Request) {
-	chirps, err := app.Config.DB.GetAllChirps(r.Context())
-	if err != nil {
-		httputil.RespondWithError(w, http.StatusInternalServerError, err.Error())
+	var chirps []database.Chirp
+	var err error
+
+	authorIDStr := r.URL.Query().Get("author_id")
+	if authorIDStr == "" {
+		chirps, err = app.Config.DB.GetAllChirps(r.Context())
+		if err != nil {
+			httputil.RespondWithError(w, http.StatusInternalServerError, err.Error())
+		}
+	} else {
+		authorID, err := uuid.Parse(authorIDStr)
+		if err != nil {
+			httputil.RespondWithError(w, http.StatusBadRequest, "Author ID is invalid")
+			return
+		}
+		chirps, err = app.Config.DB.GetChirpsByAuthor(r.Context(), authorID)
 	}
+	sortOrder := r.URL.Query().Get("sort")
+
+	if strings.ToLower(sortOrder) == "desc" {
+		sort.Slice(chirps, func(i, j int) bool {
+			return chirps[i].CreatedAt.After(chirps[j].CreatedAt)
+		})
+	}
+
 	httputil.RespondWithJSON(w, http.StatusOK, chirps)
 }
 func (app *Application) HandlerGetChirpByID(w http.ResponseWriter, r *http.Request) {

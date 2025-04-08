@@ -18,6 +18,7 @@ type Querier interface {
 	DeleteChirp(ctx context.Context, id uuid.UUID) error
 	GetAllChirps(ctx context.Context) ([]Chirp, error)
 	GetChirpById(ctx context.Context, id uuid.UUID) (Chirp, error)
+	GetChirpsByAuthor(ctx context.Context, userID uuid.UUID) ([]Chirp, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserForRefreshToken(ctx context.Context, token string) (User, error)
 	RevokeRefreshToken(ctx context.Context, token string) error
