@@ -8,3 +8,15 @@ VALUES (
            $5
        )
 RETURNING *;
+
+-- name: GetAllChirps :many
+SELECT * FROM chirp
+ORDER BY created_at;
+
+-- name: GetChirpById :one
+SELECT * FROM chirp
+WHERE id = $1;
+
+-- name: DeleteChirp :exec
+DELETE FROM chirp
+WHERE id = $1;

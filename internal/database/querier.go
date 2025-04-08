@@ -6,12 +6,22 @@ package database
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 type Querier interface {
 	CreateChirp(ctx context.Context, arg CreateChirpParams) (Chirp, error)
+	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteAllUsers(ctx context.Context) error
+	DeleteChirp(ctx context.Context, id uuid.UUID) error
+	GetAllChirps(ctx context.Context) ([]Chirp, error)
+	GetChirpById(ctx context.Context, id uuid.UUID) (Chirp, error)
+	GetUserByEmail(ctx context.Context, email string) (User, error)
+	GetUserForRefreshToken(ctx context.Context, token string) (User, error)
+	RevokeRefreshToken(ctx context.Context, token string) error
+	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }
 
 var _ Querier = (*Queries)(nil)

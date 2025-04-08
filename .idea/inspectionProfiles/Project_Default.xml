@@ -4,6 +4,7 @@
     <inspection_tool class="GoDfaErrorMayBeNotNil" enabled="true" level="WARNING" enabled_by_default="true">
       <methods>
         <method importPath="github.com/maevlava/chirpy/internal/database" receiver="*Queries" name="CreateUser" />
+        <method importPath="github.com/maevlava/chirpy/internal/database" receiver="*Queries" name="UpdateUser" />
       </methods>
     </inspection_tool>
   </profile>

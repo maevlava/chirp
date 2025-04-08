@@ -46,9 +46,16 @@ func serveApiMux(app *app.Application) *http.ServeMux {
 	metricsMiddleware := app.MiddlewareMetricsInc
 	apiMux := http.NewServeMux()
 
-	apiMux.HandleFunc("GET /healthz", metricsMiddleware(http.HandlerFunc(app.HandlerReadiness)).ServeHTTP)
+	apiMux.HandleFunc("GET /chirps", metricsMiddleware(http.HandlerFunc(app.HandlerGetChirps)).ServeHTTP)
 	apiMux.HandleFunc("POST /chirps", metricsMiddleware(http.HandlerFunc(app.HandlerChirps)).ServeHTTP)
+	apiMux.HandleFunc("PUT /users", metricsMiddleware(http.HandlerFunc(app.HandlerUserUpdate)).ServeHTTP)
+	apiMux.HandleFunc("GET /chirps/{chirpId}", metricsMiddleware(http.HandlerFunc(app.HandlerGetChirpByID)).ServeHTTP)
+	apiMux.HandleFunc("DELETE /chirps/{chirpId}", metricsMiddleware(http.HandlerFunc(app.HandlerDeleteChirpByID)).ServeHTTP)
+	apiMux.HandleFunc("GET /healthz", metricsMiddleware(http.HandlerFunc(app.HandlerReadiness)).ServeHTTP)
+	apiMux.HandleFunc("POST /login", metricsMiddleware(http.HandlerFunc(app.HandlerLogin)).ServeHTTP)
 	apiMux.HandleFunc("POST /users", metricsMiddleware(http.HandlerFunc(app.HandlerUsers)).ServeHTTP)
+	apiMux.HandleFunc("POST /refresh", metricsMiddleware(http.HandlerFunc(app.HandlerRefreshToken)).ServeHTTP)
+	apiMux.HandleFunc("POST /revoke", metricsMiddleware(http.HandlerFunc(app.HandlerRevokeToken)).ServeHTTP)
 	return apiMux
 }
 func serveAdminMux(app *app.Application) *http.ServeMux {
